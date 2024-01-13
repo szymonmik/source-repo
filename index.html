@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zadanie 2</title>
+</head>
+<body style="width: 100%; height: 100vh;">
+    <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h1>Zadanie 2</h2>
+        <br>
+        <br>
+        <h3>Informacje</h3>
+        <p><b>Imie i nazwisko:</b> Szymon Mikołajczuk</p>
+        <p><b>Wersja aplikacji:</b> 1.0</p>
+        <h3>Dockerfile:</h3>
+        <code>
+            FROM nginx:alpine <br>
+            WORKDIR /usr/share/nginx/html <br>
+            COPY ./index.html . <br>
+            EXPOSE 80 <br>
+            CMD ["nginx", "-g", "daemon off;"] <br>
+        </code>
+    </div>
+</body>
+</html>
