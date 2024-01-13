@@ -5,7 +5,6 @@ on: workflow_dispatch
 jobs:
   dockerCI:
     name: dockerCI
-    needs: appVersion
     runs-on: ubuntu-latest
     steps:
       - name: Set Run ID to Variable
@@ -36,7 +35,7 @@ jobs:
           
   kubernetesCI:
     name: kubernetesCI
-    needs: [appVersion, dockerCI]
+    needs: dockerCI
     runs-on: ubuntu-latest
     steps:
       - name: Set Run ID to Variable
