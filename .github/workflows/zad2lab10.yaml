@@ -1,34 +1,16 @@
 name: Docker CI
 
-on: 
-  workflow_dispatch:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-      
+on: workflow_dispatch
+
 jobs:
-
-  appVersion:
-    runs-on: ubuntu-latest
-    outputs:
-      version_number: ${{ steps.vars.outputs.version_number }}
-    steps:
-    - name: Check out the repo
-      uses: actions/checkout@v4
-      
-    - name: set-output
-      id: vars
-      run: |
-        version_number=$(sed -n 's/.*<p>\(.*\)<\/p>.*/\1/p' index.html)
-        echo "version_number=${version_number}" >> "$GITHUB_OUTPUT"
-      shell: bash
-
   dockerCI:
     name: dockerCI
     needs: appVersion
     runs-on: ubuntu-latest
     steps:
+      - name: Set Run ID to Variable
+        run: echo "NEW_VERSION=${{ github.run_id }}" >> $GITHUB_ENV
+
       - name: Check out repo
         uses: actions/checkout@v4
       
@@ -49,14 +31,16 @@ jobs:
         with:
           context: ./
           push: true
-          tags: szymonmik/zad2-img:${{ needs.appVersion.outputs.version_number}}
+          tags: szymonmik/zad2-img:${{ env.NEW_VERSION }}
           platforms: linux/amd64,linux/arm64
           
   kubernetesCI:
     name: kubernetesCI
     needs: [appVersion, dockerCI]
     runs-on: ubuntu-latest
-    steps: 
+    steps:
+      - name: Set Run ID to Variable
+        run: echo "NEW_VERSION=${{ github.run_id }}" >> $GITHUB_ENV
       - name: Check out config-repo
         uses: actions/checkout@master
         with:
@@ -67,6 +51,8 @@ jobs:
         run: |
           git config --global user.name "ci"
           git config --global user.email "ci@ci.ci"
+          yq -i '.spec.template.spec.containers[0].image |= "szymonmik/zad2-img:" + strenv(NEW_VERSION)' deployment.yaml
+          yq -i '.spec.template.spec.containers[0].env[0].value = strenv(NEW_VERSION)' deployment.yaml
           git add deployment.yaml
-          git commit -m "update app to version ${{ needs.appVersion.outputs.version_number }}"
+          git commit -m "update deployment"
           git push origin main
